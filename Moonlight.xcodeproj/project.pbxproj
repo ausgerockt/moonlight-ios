@@ -94,6 +94,9 @@
 		FB290D0419B2C406004C83CF /* AppDelegate.m in Sources */ = {isa = PBXBuildFile; fileRef = FB290D0319B2C406004C83CF /* AppDelegate.m */; };
 		FB290D0719B2C406004C83CF /* Limelight.xcdatamodeld in Sources */ = {isa = PBXBuildFile; fileRef = FB290D0519B2C406004C83CF /* Limelight.xcdatamodeld */; };
 		FB290D0919B2C406004C83CF /* Images.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = FB290D0819B2C406004C83CF /* Images.xcassets */; };
+		FB290DB719B2C870004C83CF /* libz.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = FB290DB619B2C870004C83CF /* libz.dylib */; };
+		FB290DB919B2C877004C83CF /* libbz2.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = FB290DB819B2C877004C83CF /* libbz2.dylib */; };
+		FB290DC419B2E98F004C83CF /* libxml2.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = FB290DC319B2E98F004C83CF /* libxml2.dylib */; };
 		FB290E7919B37D81004C83CF /* iPad.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = FB290E7819B37D81004C83CF /* iPad.storyboard */; };
 		FB290E7B19B38036004C83CF /* iPhone.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = FB290E7A19B38036004C83CF /* iPhone.storyboard */; };
 		FB4678ED1A50C40900377732 /* OnScreenControls.m in Sources */ = {isa = PBXBuildFile; fileRef = FB4678EC1A50C40900377732 /* OnScreenControls.m */; };
@@ -103,6 +106,7 @@
 		FB4A23B81A9D3637004D2EF2 /* LoadingFrameViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = FB4A23B71A9D3637004D2EF2 /* LoadingFrameViewController.m */; };
 		FB53E1431BE5DC4400CD6ECE /* IdManager.m in Sources */ = {isa = PBXBuildFile; fileRef = FB53E1421BE5DC4400CD6ECE /* IdManager.m */; };
 		FB6549561A57907E001C8F39 /* DiscoveryWorker.m in Sources */ = {isa = PBXBuildFile; fileRef = FB6549551A57907E001C8F39 /* DiscoveryWorker.m */; };
+		FB7E794419C8B71B00A15F68 /* libiconv.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = FB7E794319C8B71B00A15F68 /* libiconv.dylib */; };
 		FB89462819F646E200339C8A /* CryptoManager.m in Sources */ = {isa = PBXBuildFile; fileRef = FB89460619F646E200339C8A /* CryptoManager.m */; };
 		FB89462919F646E200339C8A /* mkcert.c in Sources */ = {isa = PBXBuildFile; fileRef = FB89460719F646E200339C8A /* mkcert.c */; };
 		FB89462A19F646E200339C8A /* ControllerSupport.m in Sources */ = {isa = PBXBuildFile; fileRef = FB89460B19F646E200339C8A /* ControllerSupport.m */; };
@@ -684,10 +688,18 @@
 		FB89468F19F6AFB800339C8A /* libs */ = {
 			isa = PBXGroup;
 			children = (
+				FB89469019F6AFB800339C8A /* limelight-common */,
 				FB89469119F6AFB800339C8A /* openssl */,
 				FB8946E219F6AFB800339C8A /* opus */,
 			);
 			path = libs;
+			sourceTree = "<group>";
+		};
+		FB89469019F6AFB800339C8A /* limelight-common */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			path = "limelight-common";
 			sourceTree = "<group>";
 		};
 		FB89469119F6AFB800339C8A /* openssl */ = {
@@ -914,6 +926,7 @@
 			buildRules = (
 			);
 			dependencies = (
+				C627B80C1CEA10BA0060E0C1 /* PBXTargetDependency */,
 			);
 			name = "Moonlight tvOS";
 			productName = "Moonlight tvOS";
@@ -1179,6 +1192,11 @@
 			name = "moonlight-common";
 			targetProxy = 98AB2E851CAD468B0089BB98 /* PBXContainerItemProxy */;
 		};
+		C627B80C1CEA10BA0060E0C1 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			name = "moonlight-common-tvos";
+			targetProxy = C627B80B1CEA10BA0060E0C1 /* PBXContainerItemProxy */;
+		};
 		D46A73A61CBC7CB60039F1EE /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
 			target = FB290CED19B2C406004C83CF /* Moonlight */;
@@ -1223,7 +1241,7 @@
 					"$(PROJECT_DIR)/libs-tvos/",
 				);
 				MTL_ENABLE_DEBUG_INFO = YES;
-				PRODUCT_BUNDLE_IDENTIFIER = "com.apocolipse.Moonlight-tvOS.Moonlight-tvOS";
+				PRODUCT_BUNDLE_IDENTIFIER = "com.moonlight-stream.Moonlight-tvOS";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = appletvos;
 				SWIFT_OBJC_BRIDGING_HEADER = "Limelight/Input/Moonlight-Bridging-Header.h";
@@ -1260,7 +1278,7 @@
 					"$(PROJECT_DIR)/libs-tvos/",
 				);
 				MTL_ENABLE_DEBUG_INFO = NO;
-				PRODUCT_BUNDLE_IDENTIFIER = "com.apocolipse.Moonlight-tvOS.Moonlight-tvOS";
+				PRODUCT_BUNDLE_IDENTIFIER = "com.moonlight-stream.Moonlight-tvOS";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = appletvos;
 				SWIFT_OBJC_BRIDGING_HEADER = "Limelight/Input/Moonlight-Bridging-Header.h";
