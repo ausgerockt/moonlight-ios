@@ -7,5 +7,7 @@ your powerful desktop computer to your iOS Device.
 
 There are also versions for [Android](https://github.com/moonlight-stream/moonlight-android) and [PC](https://github.com/moonlight-stream/moonlight-pc).
 
+#### The code in this repository compiles and runs in Apple TV, using the Moonlight tvOS target. The original modifications for tvOS are taken from [https://github.com/apocolipse/moonlight-ios](https://github.com/apocolipse/moonlight-ios) and rebased on top of [https://github.com/moonlight-stream/moonlight-ios](https://github.com/moonlight-stream/moonlight-ios).
+
 ##### Questions?
 Check out our [wiki](https://github.com/moonlight-stream/moonlight-docs/wiki).
