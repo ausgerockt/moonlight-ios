@@ -1388,6 +1388,7 @@ const int FrontViewPositionNone = 0xff;
 {
     _primaryViewController = viewController;
 
+#if TARGET_OS_IOS
     // These are derived from the primary view controller
     if (@available(iOS 11.0, *)) {
         // iOS 11 betas (which are still installed in some places :\) crash with
@@ -1400,6 +1401,7 @@ const int FrontViewPositionNone = 0xff;
             [self setNeedsUpdateOfScreenEdgesDeferringSystemGestures];
         }
     }
+#endif
 }
 
 - (UIViewController*)childViewControllerForHomeIndicatorAutoHidden

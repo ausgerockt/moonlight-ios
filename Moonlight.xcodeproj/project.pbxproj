@@ -31,7 +31,6 @@
 		C627B79D1CE951E20060E0C1 /* CoreGraphics.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = FB290CF319B2C406004C83CF /* CoreGraphics.framework */; };
 		C627B79E1CE951E20060E0C1 /* UIKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = FB290CF519B2C406004C83CF /* UIKit.framework */; };
 		C627B79F1CE951E20060E0C1 /* CoreData.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = FB290CF719B2C406004C83CF /* CoreData.framework */; };
-		C627B7A01CE952320060E0C1 /* libmoonlight-common.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 98AB2E841CAD46840089BB98 /* libmoonlight-common.a */; };
 		C627B7A21CE952DB0060E0C1 /* CryptoManager.m in Sources */ = {isa = PBXBuildFile; fileRef = FB89460619F646E200339C8A /* CryptoManager.m */; };
 		C627B7A31CE952DB0060E0C1 /* mkcert.c in Sources */ = {isa = PBXBuildFile; fileRef = FB89460719F646E200339C8A /* mkcert.c */; };
 		C627B7A41CE952DB0060E0C1 /* IdManager.m in Sources */ = {isa = PBXBuildFile; fileRef = FB53E1421BE5DC4400CD6ECE /* IdManager.m */; };
@@ -445,6 +444,14 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		49FB47BC204088A300E7D776 /* Recovered References */ = {
+			isa = PBXGroup;
+			children = (
+				9890CF6A203B7EE1006C4B06 /* libxml2.tbd */,
+			);
+			name = "Recovered References";
+			sourceTree = "<group>";
+		};
 		98AB2E801CAD46830089BB98 /* Products */ = {
 			isa = PBXGroup;
 			children = (
@@ -522,6 +529,7 @@
 				C627B77E1CE9515C0060E0C1 /* Moonlight tvOS */,
 				FB290CF019B2C406004C83CF /* Frameworks */,
 				FB290CEF19B2C406004C83CF /* Products */,
+				49FB47BC204088A300E7D776 /* Recovered References */,
 			);
 			sourceTree = "<group>";
 		};
@@ -1195,7 +1203,6 @@
 		C627B80C1CEA10BA0060E0C1 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
 			name = "moonlight-common-tvos";
-			targetProxy = C627B80B1CEA10BA0060E0C1 /* PBXContainerItemProxy */;
 		};
 		D46A73A61CBC7CB60039F1EE /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
@@ -1386,6 +1393,7 @@
 				IPHONEOS_DEPLOYMENT_TARGET = 8.0;
 				ONLY_ACTIVE_ARCH = YES;
 				SDKROOT = iphoneos;
+				SWIFT_VERSION = 4.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
 			};
 			name = Debug;
@@ -1431,6 +1439,7 @@
 				IPHONEOS_DEPLOYMENT_TARGET = 8.0;
 				PROVISIONING_PROFILE = "";
 				SDKROOT = iphoneos;
+				SWIFT_VERSION = 4.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
 				VALIDATE_PRODUCT = YES;
 			};
@@ -1518,6 +1527,7 @@
 				C627B78F1CE9515C0060E0C1 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
 		};
 		D46A73A91CBC7CB60039F1EE /* Build configuration list for PBXNativeTarget "MoonlightUnitTests" */ = {
 			isa = XCConfigurationList;

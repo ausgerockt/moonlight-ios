@@ -7,6 +7,8 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		49FB47BE20408E6000E7D776 /* rs.c in Sources */ = {isa = PBXBuildFile; fileRef = 9857AEEE1EBE85E10084F99E /* rs.c */; };
+		49FB47BF20408E6000E7D776 /* RtpFecQueue.c in Sources */ = {isa = PBXBuildFile; fileRef = 9857AEE91EBE85A20084F99E /* RtpFecQueue.c */; };
 		9857AEEA1EBE85A20084F99E /* RtpFecQueue.c in Sources */ = {isa = PBXBuildFile; fileRef = 9857AEE91EBE85A20084F99E /* RtpFecQueue.c */; };
 		9857AEF01EBE85E10084F99E /* rs.c in Sources */ = {isa = PBXBuildFile; fileRef = 9857AEEE1EBE85E10084F99E /* rs.c */; };
 		98AB2E401CAD425A0089BB98 /* AudioStream.c in Sources */ = {isa = PBXBuildFile; fileRef = 98AB2E1A1CAD423B0089BB98 /* AudioStream.c */; };
@@ -361,6 +363,8 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				49FB47BE20408E6000E7D776 /* rs.c in Sources */,
+				49FB47BF20408E6000E7D776 /* RtpFecQueue.c in Sources */,
 				C627B7D81CE957110060E0C1 /* AudioStream.c in Sources */,
 				C627B7D91CE957110060E0C1 /* ByteBuffer.c in Sources */,
 				C627B7DA1CE957110060E0C1 /* Connection.c in Sources */,
