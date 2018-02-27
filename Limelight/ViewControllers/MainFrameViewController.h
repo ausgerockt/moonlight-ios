@@ -19,7 +19,9 @@
 @interface MainFrameViewController : UICollectionViewController <DiscoveryCallback, PairCallback, HostCallback, AppCallback, AppAssetCallback, NSURLConnectionDelegate, SWRevealViewControllerDelegate>
 #elif TARGET_OS_TV
 @interface MainFrameViewController : UICollectionViewController <DiscoveryCallback, PairCallback, HostCallback, AppCallback, AppAssetCallback, NSURLConnectionDelegate, UICollectionViewDataSource, SWRevealViewControllerDelegate>
+@property (weak, nonatomic) IBOutlet UIBarButtonItem *configButton;
 #endif
+
 @property (strong, nonatomic) IBOutlet UIButton *limelightLogoButton;
 @property (weak, nonatomic) IBOutlet UIBarButtonItem *computerNameButton;
 

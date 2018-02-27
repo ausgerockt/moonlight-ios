@@ -239,6 +239,12 @@ static NSMutableSet* hostList;
     [self.view addSubview:hostScrollView];
 }
 
+- (void)pushSettings {
+    UIStoryboard *mainStoryboard = [UIStoryboard storyboardWithName:@"tvosStory" bundle:nil];
+    SettingsViewController *vc = [mainStoryboard instantiateViewControllerWithIdentifier:@"settingsViewController"];
+    [self.navigationController pushViewController:vc animated:YES];
+}
+
 - (void) receivedAssetForApp:(TemporaryApp*)app {
     // Update the box art cache now so we don't have to do it
     // on the main thread
@@ -530,15 +536,6 @@ static NSMutableSet* hostList;
     [self dismissViewControllerAnimated:YES completion:nil];
     [self enableNavigation];
 }
-#if TARGET_OS_IOS
-#elif TARGET_OS_TV
-- (void)pushSettings:(id)sender {
-  UIStoryboard *mainStoryboard = [UIStoryboard storyboardWithName:@"tvosStory" bundle:nil];
-  SettingsViewController *vc = [mainStoryboard instantiateViewControllerWithIdentifier:@"settingsViewController"];
-  [self.navigationController pushViewController:vc animated:YES];
-}
-
-#endif
 
 - (void)viewDidLoad
 {
@@ -548,7 +545,8 @@ static NSMutableSet* hostList;
 #if TARGET_OS_IOS
     [_limelightLogoButton addTarget:self.revealViewController action:@selector(revealToggle:) forControlEvents:UIControlEventTouchDown];
 #elif TARGET_OS_TV
-    [_limelightLogoButton addTarget:self action:@selector(pushSettings:) forControlEvents:UIControlEventPrimaryActionTriggered];
+    [_configButton setTarget:self];
+    [_configButton setAction:@selector(pushSettings)];
 #endif
     // Set the host name button action. When it's tapped, it'll show the host selection view.
     [_computerNameButton setTarget:self];
@@ -597,8 +595,9 @@ static NSMutableSet* hostList;
     self.collectionView.delaysContentTouches = NO;
     self.collectionView.allowsMultipleSelection = NO;
 #if TARGET_OS_IOS
-  self.collectionView.multipleTouchEnabled = NO;
+    self.collectionView.multipleTouchEnabled = NO;
 #elif TARGET_OS_TV
+    [pullArrow setEnabled:false];
 #endif
     [self retrieveSavedHosts];
     _discMan = [[DiscoveryManager alloc] initWithHosts:[hostList allObjects] andCallback:self];
@@ -674,15 +673,18 @@ static NSMutableSet* hostList;
         }
     }
 }
+
 #if TARGET_OS_IOS
 #elif TARGET_OS_TV
 - (void)didUpdateFocusInContext:(UIFocusUpdateContext *)context withAnimationCoordinator:(UIFocusAnimationCoordinator *)coordinator
 {
-    UIView *next =context.nextFocusedView;
-    UIView *prev =context.previouslyFocusedView;
+    UIView *next = context.nextFocusedView;
+    UIView *prev = context.previouslyFocusedView;
+    if ([prev isMemberOfClass:[UIButton class]]) {
+        prev.layer.shadowColor = [[UIColor blackColor] CGColor];
+    }
     if ([next isMemberOfClass:[UIButton class]]) {
-      next.layer.shadowColor = [[UIColor greenColor] CGColor];
-      prev.layer.shadowColor = [[UIColor blackColor] CGColor];
+        next.layer.shadowColor = [[UIColor greenColor] CGColor];
     }
 }
 #endif
@@ -870,6 +872,7 @@ static NSMutableSet* hostList;
 - (void) enableNavigation {
     self.navigationController.navigationBar.topItem.rightBarButtonItem.enabled = YES;
 }
+
 #if TARGET_OS_IOS
 #elif TARGET_OS_TV
 - (BOOL)collectionView:(UICollectionView *)collectionView canFocusItemAtIndexPath:(NSIndexPath *)indexPath {
