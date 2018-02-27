@@ -19,6 +19,7 @@
 @implementation StreamFrameViewController {
     ControllerSupport *_controllerSupport;
     StreamManager *_streamMan;
+    UITapGestureRecognizer *_menuGestureRecognizer;
 }
 
 - (void)viewDidAppear:(BOOL)animated
@@ -43,6 +44,14 @@
     [UIApplication sharedApplication].idleTimerDisabled = YES;
     
     _controllerSupport = [[ControllerSupport alloc] init];
+#if TARGET_OS_TV
+    if (!_menuGestureRecognizer) {
+        _menuGestureRecognizer = [[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(controllerPauseButtonPressed:)];
+        _menuGestureRecognizer.allowedPressTypes = @[@(UIPressTypeMenu)];
+    }
+
+    [self.view addGestureRecognizer:_menuGestureRecognizer];
+#endif
     
     _streamMan = [[StreamManager alloc] initWithConfig:self.streamConfig
                                             renderView:self.view
@@ -55,6 +64,10 @@
                                                  name:UIApplicationWillResignActiveNotification
                                                object:nil];
 }
+
+#ifdef TARGET_OS_TV
+- (void)controllerPauseButtonPressed:(id)sender {  }
+#endif
 
 - (void) returnToMainFrame {
     [_controllerSupport cleanup];
