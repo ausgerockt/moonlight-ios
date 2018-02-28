@@ -47,6 +47,21 @@
 }
 static NSMutableSet* hostList;
 
+- (void)presentAlert:(UIAlertController *)action {
+    [self presentAlertWithCompletion:action completion:nil];
+}
+
+- (void)presentAlertWithCompletion:(UIAlertController *)alert completion:(void (^)(void))callback {
+#ifdef TARGET_OS_TV
+    [self dismissViewControllerAnimated:YES completion:^{
+        [self presentViewController:alert animated:YES completion:callback];
+    }];
+    [self enableNavigation];
+#else
+    [self presentViewController:alert animated:YES completion:callback];
+#endif
+}
+
 - (void)showPIN:(NSString *)PIN {
     dispatch_async(dispatch_get_main_queue(), ^{
         _pairAlert = [UIAlertController alertControllerWithTitle:@"Pairing"
@@ -57,7 +72,7 @@ static NSMutableSet* hostList;
             [_discMan startDiscovery];
             [self hideLoadingFrame];
         }]];
-        [self presentViewController:_pairAlert animated:YES completion:nil];
+        [self presentAlert:_pairAlert];
     });
 }
 
@@ -66,7 +81,7 @@ static NSMutableSet* hostList;
                                                      message:message
                                               preferredStyle:UIAlertControllerStyleAlert];
     [failedDialog addAction:[UIAlertAction actionWithTitle:@"Ok" style:UIAlertActionStyleDestructive handler:nil]];
-    [self presentViewController:failedDialog animated:YES completion:nil];
+    [self presentAlert:failedDialog];
     
     [_discMan startDiscovery];
     [self hideLoadingFrame];
@@ -156,14 +171,14 @@ static NSMutableSet* hostList;
                                                                                       message:@"The connection to the PC was interrupted."
                                                                                preferredStyle:UIAlertControllerStyleAlert];
                 [applistAlert addAction:[UIAlertAction actionWithTitle:@"Ok" style:UIAlertActionStyleDestructive handler:nil]];
-                [self presentViewController:applistAlert animated:YES completion:nil];
+                [self presentAlert:applistAlert];
                 host.online = NO;
                 [self showHostSelectionView];
             });
         } else {
             dispatch_async(dispatch_get_main_queue(), ^{
                 [self updateApplist:[appListResp getAppList] forHost:host];
-
+                
                 if (host != _selectedHost) {
                     return;
                 }
@@ -263,7 +278,7 @@ static NSMutableSet* hostList;
                                                                    message:@"Failed to resolve host."
                                                             preferredStyle:UIAlertControllerStyleAlert];
     [alert addAction:[UIAlertAction actionWithTitle:@"Ok" style:UIAlertActionStyleDestructive handler:nil]];
-    [self presentViewController:alert animated:YES completion:nil];
+    [self presentAlert:alert];
 }
 
 - (void) hostClicked:(TemporaryHost *)host view:(UIView *)view {
@@ -314,7 +329,7 @@ static NSMutableSet* hostList;
                                                                                       message:@"The connection to the PC was interrupted."
                                                                                preferredStyle:UIAlertControllerStyleAlert];
                 [applistAlert addAction:[UIAlertAction actionWithTitle:@"Ok" style:UIAlertActionStyleDestructive handler:nil]];
-                [self presentViewController:applistAlert animated:YES completion:nil];
+                [self presentAlert:applistAlert];
                 host.online = NO;
                 [self showHostSelectionView];
             });
@@ -351,7 +366,7 @@ static NSMutableSet* hostList;
                 });
                 wolAlert.message = @"Sent WOL Packet";
             }
-            [self presentViewController:wolAlert animated:YES completion:nil];
+            [self presentAlert:wolAlert];
         }]];
     }
     [longClickAlert addAction:[UIAlertAction actionWithTitle:@"Remove Host" style:UIAlertActionStyleDestructive handler:^(UIAlertAction* action) {
@@ -370,7 +385,7 @@ static NSMutableSet* hostList;
     longClickAlert.popoverPresentationController.sourceView = view;
     
     longClickAlert.popoverPresentationController.sourceRect = CGRectMake(view.bounds.size.width / 2.0, view.bounds.size.height / 2.0, 1.0, 1.0); // center of the view
-    [self presentViewController:longClickAlert animated:YES completion:^{
+    [self presentAlertWithCompletion:longClickAlert completion:^{
         [self updateHosts];
     }];
 }
@@ -395,14 +410,14 @@ static NSMutableSet* hostList;
                     UIAlertController* hostNotFoundAlert = [UIAlertController alertControllerWithTitle:@"Add Host" message:error preferredStyle:UIAlertControllerStyleAlert];
                     [hostNotFoundAlert addAction:[UIAlertAction actionWithTitle:@"Ok" style:UIAlertActionStyleDestructive handler:nil]];
                     dispatch_async(dispatch_get_main_queue(), ^{
-                        [self presentViewController:hostNotFoundAlert animated:YES completion:nil];
+                        [self presentAlert:hostNotFoundAlert];
                     });
                 }
             }];});
     }]];
     [alertController addTextFieldWithConfigurationHandler:nil];
     [self hideLoadingFrame];
-    [self presentViewController:alertController animated:YES completion:nil];
+    [self presentAlert:alertController];
 }
 
 - (void) appClicked:(TemporaryApp *)app {
@@ -492,12 +507,12 @@ static NSMutableSet* hostList;
                                             [alert addAction:[UIAlertAction actionWithTitle:@"Ok" style:UIAlertActionStyleDestructive handler:nil]];
                                             dispatch_async(dispatch_get_main_queue(), ^{
                                                 [self updateAppsForHost:app.host];
-                                                [self presentViewController:alert animated:YES completion:nil];
+                                                [self presentAlert:alert];
                                             });
                                         });
                                     }]];
         [alertController addAction:[UIAlertAction actionWithTitle:@"Cancel" style:UIAlertActionStyleCancel handler:nil]];
-        [self presentViewController:alertController animated:YES completion:nil];
+        [self presentAlert:alertController];
     } else {
         [self performSegueWithIdentifier:@"createStreamFrame" sender:nil];
     }
@@ -529,7 +544,7 @@ static NSMutableSet* hostList;
 
 - (void) showLoadingFrame {
     LoadingFrameViewController* loadingFrame = [self.storyboard instantiateViewControllerWithIdentifier:@"loadingFrame"];
-    [self.navigationController presentViewController:loadingFrame animated:YES completion:nil];
+    [self.navigationController presentViewController:loadingFrame animated:TRUE completion:nil];
 }
 
 - (void) hideLoadingFrame {

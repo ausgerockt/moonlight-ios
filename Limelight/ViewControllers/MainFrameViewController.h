@@ -21,6 +21,9 @@
 @interface MainFrameViewController : UICollectionViewController <DiscoveryCallback, PairCallback, HostCallback, AppCallback, AppAssetCallback, NSURLConnectionDelegate, UICollectionViewDataSource, SWRevealViewControllerDelegate>
 #endif
 
+-(void)presentAlert:(UIAlertController *_Nonnull)alert;
+-(void)presentAlertWithCompletion:(UIAlertController *_Nonnull)alert completion:(void (^ __nullable)(void))completion;
+
 @property (strong, nonatomic) IBOutlet UIButton *limelightLogoButton;
 @property (weak, nonatomic) IBOutlet UIBarButtonItem *computerNameButton;
 
