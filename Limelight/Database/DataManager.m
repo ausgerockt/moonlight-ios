@@ -160,14 +160,30 @@
     NSNumberFormatter *f = [[NSNumberFormatter alloc] init];
     f.numberStyle = NSNumberFormatterDecimalStyle;
     
-    settings.bitrate = [f numberFromString:(NSString *)bitrate];
-    settings.height = [f numberFromString:(NSString *)resolution];
-    if ([settings.height intValue] == 720) {
+    if(bitrate == nil) {
+        settings.bitrate = [NSNumber numberWithInt:20000];
+    } else {
+        settings.bitrate = [f numberFromString:(NSString *)bitrate];
+    }
+    
+    if(resolution == nil) {
+        settings.height = [NSNumber numberWithInt:1080];
+    } else {
+        settings.height = [f numberFromString:(NSString *)resolution];
+    }
+    
+    if([settings.height intValue] == 720) {
         settings.width = [NSNumber numberWithInt:1280];
     } else {
         settings.width = [NSNumber numberWithInt:1920];
     }
-    settings.framerate = [f numberFromString:(NSString *)framerate];
+    
+    if(framerate == nil) {
+        settings.framerate = [NSNumber numberWithInt:60];
+    } else {
+        settings.framerate = [f numberFromString:(NSString *)framerate];
+    }
+    
     settings.onscreenControls = [NSNumber numberWithInt:OnScreenControlsLevelOff];
     
     return settings;

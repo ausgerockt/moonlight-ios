@@ -20,7 +20,7 @@
 			<key>Key</key>
 			<string>bitrate</string>
 			<key>DefaultValue</key>
-			<string>5000</string>
+			<string>20000</string>
 			<key>Values</key>
 			<array>
 				<string>5000</string>
