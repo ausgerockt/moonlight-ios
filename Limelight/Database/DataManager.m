@@ -168,7 +168,7 @@
         settings.width = [NSNumber numberWithInt:1920];
     }
     settings.framerate = [f numberFromString:(NSString *)framerate];
-    settings.onscreenControls = OnScreenControlsLevelOff;
+    settings.onscreenControls = [NSNumber numberWithInt:OnScreenControlsLevelOff];
     
     return settings;
 #endif
