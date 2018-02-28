@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		49F89C3D20464DAA00946A89 /* Settings.bundle in Resources */ = {isa = PBXBuildFile; fileRef = 49F89C3C20464DAA00946A89 /* Settings.bundle */; };
 		9832D1361BBCD5C50036EF48 /* TemporaryApp.m in Sources */ = {isa = PBXBuildFile; fileRef = 9832D1351BBCD5C50036EF48 /* TemporaryApp.m */; };
 		9890CF6B203B7EE1006C4B06 /* libxml2.tbd in Frameworks */ = {isa = PBXBuildFile; fileRef = 9890CF6A203B7EE1006C4B06 /* libxml2.tbd */; };
 		98CFB82F1CAD481B0048EF74 /* libmoonlight-common.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 98AB2E841CAD46840089BB98 /* libmoonlight-common.a */; };
@@ -174,6 +175,7 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
+		49F89C3C20464DAA00946A89 /* Settings.bundle */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.plug-in"; path = Settings.bundle; sourceTree = "<group>"; };
 		9832D1341BBCD5C50036EF48 /* TemporaryApp.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = TemporaryApp.h; path = Database/TemporaryApp.h; sourceTree = "<group>"; };
 		9832D1351BBCD5C50036EF48 /* TemporaryApp.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = TemporaryApp.m; path = Database/TemporaryApp.m; sourceTree = "<group>"; };
 		9890CF6A203B7EE1006C4B06 /* libxml2.tbd */ = {isa = PBXFileReference; lastKnownFileType = "sourcecode.text-based-dylib-definition"; name = libxml2.tbd; path = usr/lib/libxml2.tbd; sourceTree = SDKROOT; };
@@ -490,6 +492,7 @@
 				C627B78B1CE9515C0060E0C1 /* Assets.xcassets */,
 				C627B78D1CE9515C0060E0C1 /* Info.plist */,
 				C627B77F1CE9515C0060E0C1 /* Supporting Files */,
+				49F89C3C20464DAA00946A89 /* Settings.bundle */,
 			);
 			path = "Moonlight tvOS";
 			sourceTree = "<group>";
@@ -580,10 +583,10 @@
 				FB290CFA19B2C406004C83CF /* Supporting Files */,
 				FB290D0219B2C406004C83CF /* AppDelegate.h */,
 				FB290D0319B2C406004C83CF /* AppDelegate.m */,
-				FBDE86DE19F7A837001C18A8 /* UIComputerView.h */,
 				FBDE86DF19F7A837001C18A8 /* UIComputerView.m */,
 				FBDE86E419F82297001C18A8 /* UIAppView.h */,
 				FBDE86E519F82297001C18A8 /* UIAppView.m */,
+				FBDE86DE19F7A837001C18A8 /* UIComputerView.h */,
 				FB290E7819B37D81004C83CF /* iPad.storyboard */,
 				FB290E7A19B38036004C83CF /* iPhone.storyboard */,
 				FB89463719F6473800339C8A /* Launch Screen.xib */,
@@ -1045,6 +1048,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				49F89C3D20464DAA00946A89 /* Settings.bundle in Resources */,
 				C627B7CD1CE952E30060E0C1 /* Images.xcassets in Resources */,
 				C627B78C1CE9515C0060E0C1 /* Assets.xcassets in Resources */,
 				C627B7921CE9516A0060E0C1 /* tvosStory.storyboard in Resources */,

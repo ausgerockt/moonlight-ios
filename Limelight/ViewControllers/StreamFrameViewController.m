@@ -71,7 +71,11 @@
 
 - (void) returnToMainFrame {
     [_controllerSupport cleanup];
+#ifdef TARGET_OS_TV
+    [self dismissViewControllerAnimated:YES completion:nil];
+#else
     [self.navigationController popToRootViewControllerAnimated:YES];
+#endif
 }
 
 - (void)applicationWillResignActive:(NSNotification *)notification {

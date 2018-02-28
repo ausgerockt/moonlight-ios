@@ -70,24 +70,12 @@ static NSString* bitrateFormat = @"Bitrate: %.1f Mbps";
     [self.bitrateSlider setValue:(_bitrate / BITRATE_INTERVAL) animated:YES];
     [self.bitrateSlider addTarget:self action:@selector(bitrateSliderMoved) forControlEvents:UIControlEventValueChanged];
 #elif TARGET_OS_TV
-    [self.bitrateUpButton addTarget:self action:@selector(bitrateButtonPressed:) forControlEvents:UIControlEventPrimaryActionTriggered];
-    [self.bitrateDownButton addTarget:self action:@selector(bitrateButtonPressed:) forControlEvents:UIControlEventPrimaryActionTriggered];
+    [self.bitrateControl setSelectedSegmentIndex:_bitrate];
+    [self.bitrateControl addTarget:self action:@selector(bitrateSliderMoved) forControlEvents:UIControlEventValueChanged];
 #endif
     [self updateBitrateText];
 }
 
-#if TARGET_OS_IOS
-#elif TARGET_OS_TV
-- (void) bitrateButtonPressed:(UIButton *)sender {
-    if (sender == self.bitrateUpButton) {
-        _bitrate += BITRATE_INTERVAL;
-    } else {
-        _bitrate -= BITRATE_INTERVAL;
-    }
-  
-    [self updateBitrateText];
-}
-#endif
 - (void) newResolutionFpsChosen {
     NSInteger frameRate = [self getChosenFrameRate];
     NSInteger resHeight = [self getChosenStreamHeight];
@@ -129,8 +117,10 @@ static NSString* bitrateFormat = @"Bitrate: %.1f Mbps";
 }
 
 - (void) updateBitrateText {
+#if TARGET_OS_IOS
     // Display bitrate in Mbps
     [self.bitrateLabel setText:[NSString stringWithFormat:bitrateFormat, _bitrate / 1000.]];
+#endif
 }
 
 - (NSInteger) getChosenFrameRate {

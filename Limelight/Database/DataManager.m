@@ -10,6 +10,7 @@
 #import "TemporaryApp.h"
 #import "TemporarySettings.h"
 #import "Settings.h"
+#import "OnScreenControls.h"
 
 @implementation DataManager {
     NSManagedObjectContext *_managedObjectContext;
@@ -138,23 +139,39 @@
 }
 
 - (Settings*) retrieveSettings {
+#if TARGET_OS_IOS
     NSArray* fetchedRecords = [self fetchRecords:@"Settings"];
     if (fetchedRecords.count == 0) {
         // create a new settings object with the default values
         NSEntityDescription* entity = [NSEntityDescription entityForName:@"Settings" inManagedObjectContext:_managedObjectContext];
         Settings* settings = [[Settings alloc] initWithEntity:entity insertIntoManagedObjectContext:_managedObjectContext];
-#if TARGET_OS_IOS
-#elif TARGET_OS_TV
-        settings.bitrate = [NSNumber numberWithInt:20000];
-        settings.width = [NSNumber numberWithInt:1920];
-        settings.height = [NSNumber numberWithInt:1080];
-        
-#endif
         return settings;
     } else {
         // we should only ever have 1 settings object stored
         return [fetchedRecords objectAtIndex:0];
     }
+#elif TARGET_OS_TV
+    NSEntityDescription* entity = [NSEntityDescription entityForName:@"Settings" inManagedObjectContext:_managedObjectContext];
+    Settings* settings = [[Settings alloc] initWithEntity:entity insertIntoManagedObjectContext:_managedObjectContext];
+    
+    NSDictionary *bitrate = [[NSUserDefaults standardUserDefaults] valueForKey:@"bitrate"];
+    NSDictionary *resolution = [[NSUserDefaults standardUserDefaults] valueForKey:@"resolution"];
+    NSDictionary *framerate = [[NSUserDefaults standardUserDefaults] valueForKey:@"framerate"];
+    NSNumberFormatter *f = [[NSNumberFormatter alloc] init];
+    f.numberStyle = NSNumberFormatterDecimalStyle;
+    
+    settings.bitrate = [f numberFromString:(NSString *)bitrate];
+    settings.height = [f numberFromString:(NSString *)resolution];
+    if ([settings.height intValue] == 720) {
+        settings.width = [NSNumber numberWithInt:1280];
+    } else {
+        settings.width = [NSNumber numberWithInt:1920];
+    }
+    settings.framerate = [f numberFromString:(NSString *)framerate];
+    settings.onscreenControls = OnScreenControlsLevelOff;
+    
+    return settings;
+#endif
 }
 
 - (void) removeApp:(TemporaryApp*)app {

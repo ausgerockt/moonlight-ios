@@ -544,19 +544,18 @@ static NSMutableSet* hostList;
     // Set the side bar button action. When it's tapped, it'll show the sidebar.
 #if TARGET_OS_IOS
     [_limelightLogoButton addTarget:self.revealViewController action:@selector(revealToggle:) forControlEvents:UIControlEventTouchDown];
-#elif TARGET_OS_TV
-    [_configButton setTarget:self];
-    [_configButton setAction:@selector(pushSettings)];
 #endif
     // Set the host name button action. When it's tapped, it'll show the host selection view.
     [_computerNameButton setTarget:self];
     [_computerNameButton setAction:@selector(showHostSelectionView)];
     
+#if TARGET_OS_IOS
     // Set the gesture
     [self.view addGestureRecognizer:self.revealViewController.panGestureRecognizer];
     
     // Get callbacks associated with the viewController
     [self.revealViewController setDelegate:self];
+#endif
     
     // Set the current position to the center
     currentPosition = FrontViewPositionLeft;
