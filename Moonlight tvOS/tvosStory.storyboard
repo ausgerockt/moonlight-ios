@@ -36,6 +36,7 @@
                                     <rect key="frame" x="0.0" y="0.0" width="150" height="200"/>
                                     <autoresizingMask key="autoresizingMask"/>
                                 </view>
+                                <size key="customSize" width="150" height="200"/>
                             </collectionViewCell>
                         </cells>
                         <connections>
@@ -64,6 +65,7 @@
                     <value key="contentSizeForViewInPopover" type="size" width="1920" height="915"/>
                     <connections>
                         <outlet property="computerNameButton" destination="KDy-JC-2sU" id="Lkg-yz-GE6"/>
+                        <outlet property="limelightLogoButton" destination="Tiq-VS-Ua5" id="FZ8-qL-Tww"/>
                         <segue destination="OIm-0n-i9v" kind="presentation" identifier="createStreamFrame" id="UJp-r4-9Hf"/>
                     </connections>
                 </viewController>
@@ -83,7 +85,7 @@
                                 <rect key="frame" x="502" y="374" width="20" height="20"/>
                                 <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
                             </activityIndicatorView>
-                            <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Label" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" id="dDs-kT-po6">
+                            <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Label" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontForContentSizeCategory="YES" adjustsFontSizeToFit="NO" id="dDs-kT-po6">
                                 <rect key="frame" x="491" y="402" width="42" height="21"/>
                                 <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
                                 <fontDescription key="fontDescription" type="system" pointSize="17"/>

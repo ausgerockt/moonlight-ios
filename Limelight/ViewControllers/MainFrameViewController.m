@@ -612,6 +612,7 @@ static NSMutableSet* hostList;
     self.collectionView.multipleTouchEnabled = NO;
 #elif TARGET_OS_TV
     [pullArrow setEnabled:false];
+    _limelightLogoButton.hidden = true;
 #endif
     [self retrieveSavedHosts];
     _discMan = [[DiscoveryManager alloc] initWithHosts:[hostList allObjects] andCallback:self];
@@ -623,7 +624,9 @@ static NSMutableSet* hostList;
     
     [self updateHosts];
     [self.view addSubview:hostScrollView];
+#if TARGET_OS_IOS
     [self.view addSubview:pullArrow];
+#endif
 }
 
 -(void)dealloc
