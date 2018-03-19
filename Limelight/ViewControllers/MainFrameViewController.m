@@ -725,20 +725,31 @@ static NSMutableSet* hostList;
     [[hostScrollView subviews] makeObjectsPerformSelector:@selector(removeFromSuperview)];
     UIComputerView* addComp = [[UIComputerView alloc] initForAddWithCallback:self];
     UIComputerView* compView;
+    
     float prevEdge = -1;
     @synchronized (hostList) {
         // Sort the host list in alphabetical order
         NSArray* sortedHostList = [[hostList allObjects] sortedArrayUsingSelector:@selector(compareName:)];
         for (TemporaryHost* comp in sortedHostList) {
             compView = [[UIComputerView alloc] initWithComputer:comp andCallback:self];
+#if TARGET_OS_IOS
             compView.center = CGPointMake([self getCompViewX:compView addComp:addComp prevEdge:prevEdge], hostScrollView.frame.size.height / 2);
             prevEdge = compView.frame.origin.x + compView.frame.size.width;
+#elif TARGET_OS_TV
+            compView.center = CGPointMake([self getCompViewX:compView addComp:addComp prevEdge:prevEdge], hostScrollView.frame.size.height / 1.5);
+            prevEdge = compView.frame.origin.x + compView.frame.size.width / 1.5;
+#endif
             [hostScrollView addSubview:compView];
         }
     }
     
     prevEdge = [self getCompViewX:addComp addComp:addComp prevEdge:prevEdge];
-    addComp.center = CGPointMake(prevEdge, hostScrollView.frame.size.height / 2);
+    #if TARGET_OS_IOS
+        addComp.center = CGPointMake(prevEdge, hostScrollView.frame.size.height / 2);
+    #elif TARGET_OS_TV
+        addComp.center = CGPointMake(prevEdge, hostScrollView.frame.size.height / 1.5);
+    #endif
+    
     
     [hostScrollView addSubview:addComp];
     [hostScrollView setContentSize:CGSizeMake(prevEdge + addComp.frame.size.width, hostScrollView.frame.size.height)];

@@ -27,8 +27,8 @@ static const int LABEL_DY = 40;
 - (id) init {
     self = [super init];
     _hostButton = [UIButton buttonWithType:UIButtonTypeCustom];
-    [_hostButton setContentEdgeInsets:UIEdgeInsetsMake(0, 4, 0, 4)];
 #if TARGET_OS_IOS
+    [_hostButton setContentEdgeInsets:UIEdgeInsetsMake(0, 4, 0, 4)];
     [_hostButton setBackgroundImage:[UIImage imageNamed:@"Computer"] forState:UIControlStateNormal];
     [_hostLabel setFont:[UIFont fontWithName:@"Roboto-Regular" size:[UIFont systemFontSize]]];
     [_hostStatus setFont:[UIFont fontWithName:@"Roboto-Regular" size:[UIFont systemFontSize]]];
@@ -57,12 +57,13 @@ static const int LABEL_DY = 40;
 #if TARGET_OS_IOS
     [_hostButton setBackgroundImage:[UIImage imageNamed:@"Computer"] forState:UIControlStateNormal];
     [_hostButton addTarget:self action:@selector(addClicked) forControlEvents:UIControlEventTouchUpInside];
+    [_hostButton setContentEdgeInsets:UIEdgeInsetsMake(0, 4, 0, 4)];
 #elif TARGET_OS_TV
     [_hostButton setBackgroundImage:[UIImage imageNamed:@"ComputerTV"] forState:UIControlStateNormal];
     [_hostButton addTarget:self action:@selector(addClicked) forControlEvents:UIControlEventPrimaryActionTriggered];
     _hostButton.adjustsImageWhenHighlighted = true;
 #endif
-    [_hostButton setContentEdgeInsets:UIEdgeInsetsMake(0, 4, 0, 4)];
+
     [_hostButton sizeToFit];
     
     [_hostLabel setText:@"Add Host"];
