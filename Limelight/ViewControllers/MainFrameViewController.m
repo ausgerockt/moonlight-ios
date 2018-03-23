@@ -850,12 +850,11 @@ static NSMutableSet* hostList;
     cell.layer.shadowOffset = CGSizeMake(1.0f, 5.0f);
     cell.layer.shadowOpacity = 0.5f;
     cell.layer.shadowPath = shadowPath.CGPath;
-    
-    cell.layer.borderColor = [[UIColor colorWithRed:0 green:0 blue:0 alpha:0.3f] CGColor];
-    cell.layer.borderWidth = 1;
 
 #if TARGET_OS_IOS
     cell.exclusiveTouch = YES;
+    cell.layer.borderColor = [[UIColor colorWithRed:0 green:0 blue:0 alpha:0.3f] CGColor];
+    cell.layer.borderWidth = 1;
 #elif TARGET_OS_TV
 #endif
     return cell;
