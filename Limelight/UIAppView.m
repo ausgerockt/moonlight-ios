@@ -37,16 +37,14 @@ static UIImage* noImage;
 #if TARGET_OS_IOS
     _appButton = [UIButton buttonWithType:UIButtonTypeCustom];
     [_appButton setBackgroundImage:noImage forState:UIControlStateNormal];
+    [_appButton addTarget:self action:@selector(appClicked) forControlEvents:UIControlEventTouchUpInside];
 #elif TARGET_OS_TV
     _appButton = [UIButton buttonWithType:UIButtonTypeSystem];
+    [_appButton addTarget:self action:@selector(appClicked) forControlEvents:UIControlEventPrimaryActionTriggered];
 #endif
     [_appButton setContentEdgeInsets:UIEdgeInsetsMake(0, 4, 0, 4)];
     [_appButton sizeToFit];
-#if TARGET_OS_IOS
-    [_appButton addTarget:self action:@selector(appClicked) forControlEvents:UIControlEventTouchUpInside];
-#elif TARGET_OS_TV
-    [_appButton addTarget:self action:@selector(appClicked) forControlEvents:UIControlEventPrimaryActionTriggered];
-#endif
+
     [self addSubview:_appButton];
     [self sizeToFit];
     
@@ -77,8 +75,8 @@ static UIImage* noImage;
         _appOverlay.layer.shadowOffset = CGSizeMake(0, 0);
         _appOverlay.layer.shadowOpacity = 1;
         _appOverlay.layer.shadowRadius = 2.0;
-#if TARGET_OS_IOS
-#elif TARGET_OS_TV
+
+#if TARGET_OS_TV
         _appOverlay.adjustsImageWhenAncestorFocused = YES;
         _appOverlay.userInteractionEnabled=YES;
 #endif
@@ -103,12 +101,21 @@ static UIImage* noImage;
         // This size of image might be blank image received from GameStream.
         if (!(appImage.size.width == 130.f && appImage.size.height == 180.f) && // GFE 2.0
             !(appImage.size.width == 628.f && appImage.size.height == 888.f)) { // GFE 3.0
+    
+#if TARGET_OS_IOS
             _appButton.frame = CGRectMake(0, 0, appImage.size.width / 2, appImage.size.height / 2);
             self.frame = CGRectMake(0, 0, appImage.size.width / 2, appImage.size.height / 2);
+#elif TARGET_OS_TV
+            _appButton.frame = CGRectMake(0, 0, 200, 265);
+            self.frame = CGRectMake(0, 0, 200, 265);
+#endif
+            
             _appOverlay.frame = CGRectMake(0, 0, self.frame.size.width / 2.f, self.frame.size.height / 4.f);
             _appOverlay.layer.shadowRadius = 4.0;
             [_appOverlay setCenter:CGPointMake(self.frame.size.width/2, self.frame.size.height/6)];
             [_appButton setBackgroundImage:appImage forState:UIControlStateNormal];
+
+            [[[_appButton subviews] firstObject] setContentMode:UIViewContentModeScaleAspectFill];
             [self setNeedsDisplay];
         } else {
             noAppImage = true;

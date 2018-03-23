@@ -732,13 +732,13 @@ static NSMutableSet* hostList;
         NSArray* sortedHostList = [[hostList allObjects] sortedArrayUsingSelector:@selector(compareName:)];
         for (TemporaryHost* comp in sortedHostList) {
             compView = [[UIComputerView alloc] initWithComputer:comp andCallback:self];
-#if TARGET_OS_IOS
-            compView.center = CGPointMake([self getCompViewX:compView addComp:addComp prevEdge:prevEdge], hostScrollView.frame.size.height / 2);
-            prevEdge = compView.frame.origin.x + compView.frame.size.width;
-#elif TARGET_OS_TV
-            compView.center = CGPointMake([self getCompViewX:compView addComp:addComp prevEdge:prevEdge], hostScrollView.frame.size.height / 1.5);
-            prevEdge = compView.frame.origin.x + compView.frame.size.width / 1.5;
-#endif
+            #if TARGET_OS_IOS
+                compView.center = CGPointMake([self getCompViewX:compView addComp:addComp prevEdge:prevEdge], hostScrollView.frame.size.height / 2);
+                prevEdge = compView.frame.origin.x + compView.frame.size.width;
+            #elif TARGET_OS_TV
+                compView.center = CGPointMake([self getCompViewX:compView addComp:addComp prevEdge:prevEdge], hostScrollView.frame.size.height / 1.5);
+                prevEdge = compView.frame.origin.x + compView.frame.size.width / 1.5;
+            #endif
             [hostScrollView addSubview:compView];
         }
     }
