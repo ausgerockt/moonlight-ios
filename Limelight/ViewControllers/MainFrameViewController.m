@@ -507,12 +507,22 @@ static NSMutableSet* hostList;
                                             [alert addAction:[UIAlertAction actionWithTitle:@"Ok" style:UIAlertActionStyleDestructive handler:nil]];
                                             dispatch_async(dispatch_get_main_queue(), ^{
                                                 [self updateAppsForHost:app.host];
+#if TARGET_OS_IOS
                                                 [self presentAlert:alert];
+#elif TARGET_OS_TV
+                                                [self presentViewController:alert animated:YES completion:nil];
+#endif
+                                                
                                             });
                                         });
                                     }]];
         [alertController addAction:[UIAlertAction actionWithTitle:@"Cancel" style:UIAlertActionStyleCancel handler:nil]];
+#if TARGET_OS_IOS
         [self presentAlert:alertController];
+#elif TARGET_OS_TV
+        [self presentViewController:alertController animated:YES completion:nil];
+#endif
+        
     } else {
         [self performSegueWithIdentifier:@"createStreamFrame" sender:nil];
     }
