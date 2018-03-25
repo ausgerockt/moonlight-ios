@@ -507,12 +507,22 @@ static NSMutableSet* hostList;
                                             [alert addAction:[UIAlertAction actionWithTitle:@"Ok" style:UIAlertActionStyleDestructive handler:nil]];
                                             dispatch_async(dispatch_get_main_queue(), ^{
                                                 [self updateAppsForHost:app.host];
+#if TARGET_OS_IOS
                                                 [self presentAlert:alert];
+#elif TARGET_OS_TV
+                                                [self presentViewController:alert animated:YES completion:nil];
+#endif
+                                                
                                             });
                                         });
                                     }]];
         [alertController addAction:[UIAlertAction actionWithTitle:@"Cancel" style:UIAlertActionStyleCancel handler:nil]];
+#if TARGET_OS_IOS
         [self presentAlert:alertController];
+#elif TARGET_OS_TV
+        [self presentViewController:alertController animated:YES completion:nil];
+#endif
+        
     } else {
         [self performSegueWithIdentifier:@"createStreamFrame" sender:nil];
     }
@@ -612,6 +622,7 @@ static NSMutableSet* hostList;
     self.collectionView.multipleTouchEnabled = NO;
 #elif TARGET_OS_TV
     [pullArrow setEnabled:false];
+    _limelightLogoButton.hidden = true;
 #endif
     [self retrieveSavedHosts];
     _discMan = [[DiscoveryManager alloc] initWithHosts:[hostList allObjects] andCallback:self];
@@ -623,7 +634,9 @@ static NSMutableSet* hostList;
     
     [self updateHosts];
     [self.view addSubview:hostScrollView];
+#if TARGET_OS_IOS
     [self.view addSubview:pullArrow];
+#endif
 }
 
 -(void)dealloc
@@ -722,20 +735,31 @@ static NSMutableSet* hostList;
     [[hostScrollView subviews] makeObjectsPerformSelector:@selector(removeFromSuperview)];
     UIComputerView* addComp = [[UIComputerView alloc] initForAddWithCallback:self];
     UIComputerView* compView;
+    
     float prevEdge = -1;
     @synchronized (hostList) {
         // Sort the host list in alphabetical order
         NSArray* sortedHostList = [[hostList allObjects] sortedArrayUsingSelector:@selector(compareName:)];
         for (TemporaryHost* comp in sortedHostList) {
             compView = [[UIComputerView alloc] initWithComputer:comp andCallback:self];
-            compView.center = CGPointMake([self getCompViewX:compView addComp:addComp prevEdge:prevEdge], hostScrollView.frame.size.height / 2);
-            prevEdge = compView.frame.origin.x + compView.frame.size.width;
+            #if TARGET_OS_IOS
+                compView.center = CGPointMake([self getCompViewX:compView addComp:addComp prevEdge:prevEdge], hostScrollView.frame.size.height / 2);
+                prevEdge = compView.frame.origin.x + compView.frame.size.width;
+            #elif TARGET_OS_TV
+                compView.center = CGPointMake([self getCompViewX:compView addComp:addComp prevEdge:prevEdge], hostScrollView.frame.size.height / 1.5);
+                prevEdge = compView.frame.origin.x + compView.frame.size.width / 1.5;
+            #endif
             [hostScrollView addSubview:compView];
         }
     }
     
     prevEdge = [self getCompViewX:addComp addComp:addComp prevEdge:prevEdge];
-    addComp.center = CGPointMake(prevEdge, hostScrollView.frame.size.height / 2);
+    #if TARGET_OS_IOS
+        addComp.center = CGPointMake(prevEdge, hostScrollView.frame.size.height / 2);
+    #elif TARGET_OS_TV
+        addComp.center = CGPointMake(prevEdge, hostScrollView.frame.size.height / 1.5);
+    #endif
+    
     
     [hostScrollView addSubview:addComp];
     [hostScrollView setContentSize:CGSizeMake(prevEdge + addComp.frame.size.width, hostScrollView.frame.size.height)];
@@ -836,12 +860,11 @@ static NSMutableSet* hostList;
     cell.layer.shadowOffset = CGSizeMake(1.0f, 5.0f);
     cell.layer.shadowOpacity = 0.5f;
     cell.layer.shadowPath = shadowPath.CGPath;
-    
-    cell.layer.borderColor = [[UIColor colorWithRed:0 green:0 blue:0 alpha:0.3f] CGColor];
-    cell.layer.borderWidth = 1;
 
 #if TARGET_OS_IOS
     cell.exclusiveTouch = YES;
+    cell.layer.borderColor = [[UIColor colorWithRed:0 green:0 blue:0 alpha:0.3f] CGColor];
+    cell.layer.borderWidth = 1;
 #elif TARGET_OS_TV
 #endif
     return cell;
