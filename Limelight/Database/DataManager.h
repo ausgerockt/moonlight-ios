@@ -6,7 +6,6 @@
 //  Copyright (c) 2014 Moonlight Stream. All rights reserved.
 //
 
-#import <Foundation/Foundation.h>
 #import "AppDelegate.h"
 #import "TemporaryHost.h"
 #import "TemporaryApp.h"
@@ -14,7 +13,17 @@
 
 @interface DataManager : NSObject
 
-- (void) saveSettingsWithBitrate:(NSInteger)bitrate framerate:(NSInteger)framerate height:(NSInteger)height width:(NSInteger)width onscreenControls:(NSInteger)onscreenControls;
+- (void) saveSettingsWithBitrate:(NSInteger)bitrate
+                       framerate:(NSInteger)framerate
+                          height:(NSInteger)height
+                           width:(NSInteger)width
+                onscreenControls:(NSInteger)onscreenControls
+                          remote:(BOOL)streamingRemotely
+                   optimizeGames:(BOOL)optimizeGames
+                 multiController:(BOOL)multiController
+                       audioOnPC:(BOOL)audioOnPC
+                         useHevc:(BOOL)useHevc
+                       enableHdr:(BOOL)enableHdr;
 
 - (NSArray*) getHosts;
 - (void) updateHost:(TemporaryHost*)host;

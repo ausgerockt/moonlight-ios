@@ -69,23 +69,23 @@ static const NSString* HTTPS_PORT = @"47984";
         
         if (error != NULL) {
             Log(LOG_D, @"Connection error: %@", error);
-            _errorOccurred = true;
+            self->_errorOccurred = true;
         }
         else {
             Log(LOG_D, @"Received response: %@", response);
 
             if (data != NULL) {
                 Log(LOG_D, @"\n\nReceived data: %@\n\n", [[NSString alloc] initWithData:data encoding:NSUTF8StringEncoding]);
-                [_respData appendData:data];
-                if ([[NSString alloc] initWithData:_respData encoding:NSUTF8StringEncoding] != nil) {
-                    _requestResp = [HttpManager fixXmlVersion:_respData];
+                [self->_respData appendData:data];
+                if ([[NSString alloc] initWithData:self->_respData encoding:NSUTF8StringEncoding] != nil) {
+                    self->_requestResp = [HttpManager fixXmlVersion:self->_respData];
                 } else {
-                    _requestResp = _respData;
+                    self->_requestResp = self->_respData;
                 }
             }
         }
         
-        dispatch_semaphore_signal(_requestLock);
+        dispatch_semaphore_signal(self->_requestLock);
     }] resume];
     dispatch_semaphore_wait(_requestLock, DISPATCH_TIME_FOREVER);
     
@@ -167,14 +167,28 @@ static const NSString* HTTPS_PORT = @"47984";
     return [self createRequestFromString:urlString enableTimeout:TRUE];
 }
 
-- (NSURLRequest*) newLaunchRequest:(NSString*)appId width:(int)width height:(int)height refreshRate:(int)refreshRate rikey:(NSString*)rikey rikeyid:(int)rikeyid gamepadMask:(int)gamepadMask {
-    NSString* urlString = [NSString stringWithFormat:@"%@/launch?uniqueid=%@&appid=%@&mode=%dx%dx%d&additionalStates=1&sops=1&rikey=%@&rikeyid=%d&remoteControllersBitmap=%d&gcmap=%d", _baseHTTPSURL, _uniqueId, appId, width, height, refreshRate, rikey, rikeyid, gamepadMask, gamepadMask];
+- (NSURLRequest*) newLaunchRequest:(StreamConfiguration*)config {
+    NSString* urlString = [NSString stringWithFormat:@"%@/launch?uniqueid=%@&appid=%@&mode=%dx%dx%d&additionalStates=1&sops=%d&rikey=%@&rikeyid=%d%@&localAudioPlayMode=%d&surroundAudioInfo=%d&remoteControllersBitmap=%d&gcmap=%d",
+                           _baseHTTPSURL, _uniqueId,
+                           config.appID,
+                           config.width, config.height, config.frameRate,
+                           config.optimizeGameSettings ? 1 : 0,
+                           [Utils bytesToHex:config.riKey], config.riKeyId,
+                           config.enableHdr ? @"&hdrMode=1&clientHdrCapVersion=0&clientHdrCapSupportedFlagsInUint32=0&clientHdrCapMetaDataId=NV_STATIC_METADATA_TYPE_1&clientHdrCapDisplayData=0x0x0x0x0x0x0x0x0x0x0": @"",
+                           config.playAudioOnPC ? 1 : 0,
+                           (config.audioChannelMask << 16) | config.audioChannelCount,
+                           config.gamepadMask, config.gamepadMask];
+    Log(LOG_I, @"Requesting: %@", urlString);
     // This blocks while the app is launching
     return [self createRequestFromString:urlString enableTimeout:FALSE];
 }
 
-- (NSURLRequest*) newResumeRequestWithRiKey:(NSString*)riKey riKeyId:(int)riKeyId {
-    NSString* urlString = [NSString stringWithFormat:@"%@/resume?uniqueid=%@&rikey=%@&rikeyid=%d", _baseHTTPSURL, _uniqueId, riKey, riKeyId];
+- (NSURLRequest*) newResumeRequest:(StreamConfiguration*)config {
+    NSString* urlString = [NSString stringWithFormat:@"%@/resume?uniqueid=%@&rikey=%@&rikeyid=%d&surroundAudioInfo=%d",
+                           _baseHTTPSURL, _uniqueId,
+                           [Utils bytesToHex:config.riKey], config.riKeyId,
+                           (config.audioChannelMask << 16) | config.audioChannelCount];
+    Log(LOG_I, @"Requesting: %@", urlString);
     // This blocks while the app is resuming
     return [self createRequestFromString:urlString enableTimeout:FALSE];
 }

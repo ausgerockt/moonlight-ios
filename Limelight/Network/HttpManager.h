@@ -6,9 +6,9 @@
 //  Copyright (c) 2014 Moonlight Stream. All rights reserved.
 //
 
-#import <Foundation/Foundation.h>
 #import "HttpResponse.h"
 #import "HttpRequest.h"
+#import "StreamConfiguration.h"
 
 @interface HttpManager : NSObject <NSURLSessionDelegate>
 
@@ -22,8 +22,8 @@
 - (NSURLRequest*) newAppListRequest;
 - (NSURLRequest*) newServerInfoRequest;
 - (NSURLRequest*) newHttpServerInfoRequest;
-- (NSURLRequest*) newLaunchRequest:(NSString*)appId width:(int)width height:(int)height refreshRate:(int)refreshRate rikey:(NSString*)rikey rikeyid:(int)rikeyid gamepadMask:(int)gamepadMask;
-- (NSURLRequest*) newResumeRequestWithRiKey:(NSString*)riKey riKeyId:(int)riKeyId;
+- (NSURLRequest*) newLaunchRequest:(StreamConfiguration*)config;
+- (NSURLRequest*) newResumeRequest:(StreamConfiguration*)config;
 - (NSURLRequest*) newQuitAppRequest;
 - (NSURLRequest*) newAppAssetRequestWithAppId:(NSString*)appId;
 - (void) executeRequestSynchronously:(HttpRequest*)request;

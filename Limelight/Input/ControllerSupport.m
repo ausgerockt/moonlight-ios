@@ -7,7 +7,13 @@
 //
 
 #import "ControllerSupport.h"
+
 #import "OnScreenControls.h"
+#if !TARGET_OS_IPHONE
+#import "Gamepad.h"
+#import "Control.h"
+#endif
+
 #import "DataManager.h"
 #include "Limelight.h"
 
@@ -22,16 +28,17 @@
     NSMutableDictionary *_controllers;
     
     OnScreenControls *_osc;
-    bool _oscEnabled;
     
     // This controller object is shared between on-screen controls
     // and player 0
     Controller *_player0osc;
     
-    char _controllerNumbers;
-    
 #define EMULATING_SELECT     0x1
 #define EMULATING_SPECIAL    0x2
+    
+    bool _oscEnabled;
+    char _controllerNumbers;
+    bool _multiController;
 }
 
 // UPDATE_BUTTON_FLAG(controller, flag, pressed)
@@ -114,17 +121,16 @@
 -(void) updateButtonFlags:(Controller*)controller flags:(int)flags
 {
     @synchronized(controller) {
-        int releasedButtons = (controller.lastButtonFlags ^ flags) & ~flags;
-        int pressedButtons = (controller.lastButtonFlags ^ flags) & flags;
-        
         controller.lastButtonFlags = flags;
         
         // This must be called before handleSpecialCombosPressed
         // because we clear the original button flags there
+        int releasedButtons = (controller.lastButtonFlags ^ flags) & ~flags;
+        int pressedButtons = (controller.lastButtonFlags ^ flags) & flags;
+        
         [self handleSpecialCombosReleased:controller releasedButtons:releasedButtons];
         
         [self handleSpecialCombosPressed:controller pressedButtons:pressedButtons];
-        
     }
 }
 
@@ -149,7 +155,8 @@
     [_controllerStreamLock lock];
     @synchronized(controller) {
         // Player 1 is always present for OSC
-        LiSendMultiControllerEvent(controller.playerIndex, _controllerNumbers | (_oscEnabled ? 1 : 0), controller.lastButtonFlags, controller.lastLeftTrigger, controller.lastRightTrigger, controller.lastLeftStickX, controller.lastLeftStickY, controller.lastRightStickX, controller.lastRightStickY);
+        LiSendMultiControllerEvent(_multiController ? controller.playerIndex : 0,
+                                   (_multiController ? _controllerNumbers : 1) | (_oscEnabled ? 1 : 0), controller.lastButtonFlags, controller.lastLeftTrigger, controller.lastRightTrigger, controller.lastLeftStickX, controller.lastLeftStickY, controller.lastRightStickX, controller.lastRightStickY);
     }
     [_controllerStreamLock unlock];
 }
@@ -172,20 +179,24 @@
 {
     if (controller != NULL) {
         controller.controllerPausedHandler = ^(GCController *controller) {
-            Controller* limeController = [_controllers objectForKey:[NSNumber numberWithInteger:controller.playerIndex]];
-            [self setButtonFlag:limeController flags:PLAY_FLAG];
-            [self updateFinished:limeController];
+            Controller* limeController = [self->_controllers objectForKey:[NSNumber numberWithInteger:controller.playerIndex]];
             
-            // Pause for 100 ms
-            usleep(100 * 1000);
-            
-            [self clearButtonFlag:limeController flags:PLAY_FLAG];
-            [self updateFinished:limeController];
+            // Get off the main thread
+            dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_HIGH, 0), ^{
+                [self setButtonFlag:limeController flags:PLAY_FLAG];
+                [self updateFinished:limeController];
+                
+                // Pause for 100 ms
+                usleep(100 * 1000);
+                
+                [self clearButtonFlag:limeController flags:PLAY_FLAG];
+                [self updateFinished:limeController];
+            });
         };
         
         if (controller.extendedGamepad != NULL) {
             controller.extendedGamepad.valueChangedHandler = ^(GCExtendedGamepad *gamepad, GCControllerElement *element) {
-                Controller* limeController = [_controllers objectForKey:[NSNumber numberWithInteger:gamepad.controller.playerIndex]];
+                Controller* limeController = [self->_controllers objectForKey:[NSNumber numberWithInteger:gamepad.controller.playerIndex]];
                 short leftStickX, leftStickY;
                 short rightStickX, rightStickY;
                 char leftTrigger, rightTrigger;
@@ -220,7 +231,7 @@
         }
         else if (controller.gamepad != NULL) {
             controller.gamepad.valueChangedHandler = ^(GCGamepad *gamepad, GCControllerElement *element) {
-                Controller* limeController = [_controllers objectForKey:[NSNumber numberWithInteger:gamepad.controller.playerIndex]];
+                Controller* limeController = [self->_controllers objectForKey:[NSNumber numberWithInteger:gamepad.controller.playerIndex]];
                 UPDATE_BUTTON_FLAG(limeController, A_FLAG, gamepad.buttonA.pressed);
                 UPDATE_BUTTON_FLAG(limeController, B_FLAG, gamepad.buttonB.pressed);
                 UPDATE_BUTTON_FLAG(limeController, X_FLAG, gamepad.buttonX.pressed);
@@ -248,11 +259,13 @@
     if (_osc == NULL) {
         return;
     }
-#if TARGET_OS_IOS
-    OnScreenControlsLevel level = OnScreenControlsLevelFull;
-#elif TARGET_OS_TV
+    
+#if TARGET_OS_TV
     OnScreenControlsLevel level = OnScreenControlsLevelAutoGCExtendedGamepad;
+#else
+    OnScreenControlsLevel level = OnScreenControlsLevelFull;
 #endif
+
     // We currently stop after the first controller we find.
     // Maybe we'll want to change that logic later.
     for (int i = 0; i < [[GCController controllers] count]; i++) {
@@ -270,7 +283,9 @@
         }
     }
     
+#if TARGET_OS_IPHONE
     [_osc setLevel:level];
+#endif
 }
 
 -(void) initAutoOnScreenControlMode:(OnScreenControls*)osc
@@ -287,6 +302,7 @@
             controller.playerIndex = i;
             
             Controller* limeController;
+
             if (i == 0) {
                 // Player 0 shares a controller object with the on-screen controls
                 limeController = _player0osc;
@@ -303,45 +319,114 @@
     }
 }
 
+#if TARGET_OS_IPHONE
 -(Controller*) getOscController {
     return _player0osc;
 }
+#else
+-(NSMutableDictionary*) getControllers {
+    return _controllers;
+}
 
-+(int) getConnectedGamepadMask {
-    int mask = 0;
+-(void) assignGamepad:(struct Gamepad_device *)gamepad {
+    for (int i = 0; i < 4; i++) {
+        if (!(_controllerNumbers & (1 << i))) {
+            _controllerNumbers |= (1 << i);
+            gamepad->deviceID = i;
+            NSLog(@"Gamepad device id: %u assigned", gamepad->deviceID);
+            Controller* limeController;
+            limeController = [[Controller alloc] init];
+            limeController.playerIndex = i;
+            
+            [_controllers setObject:limeController forKey:[NSNumber numberWithInteger:i]];
+            break;
+        }
+    }
+}
+
+-(void) removeGamepad:(struct Gamepad_device *)gamepad {
+    _controllerNumbers &= ~(1 << gamepad->deviceID);
+    Log(LOG_I, @"Unassigning controller index: %ld", (long)gamepad->deviceID);
     
-    for (int i = 0; i < [[GCController controllers] count]; i++) {
-        mask |= 1 << i;
+    // Inform the server of the updated active gamepads before removing this controller
+    [self updateFinished:[_controllers objectForKey:[NSNumber numberWithInteger:gamepad->deviceID]]];
+    [_controllers removeObjectForKey:[NSNumber numberWithInteger:gamepad->deviceID]];
+}
+#endif
+
++(bool) isSupportedGamepad:(GCController*) controller {
+    return controller.extendedGamepad != nil || controller.gamepad != nil;
+}
+
++(int) getGamepadCount {
+    int count = 0;
+    
+    for (GCController* controller in [GCController controllers]) {
+        if ([ControllerSupport isSupportedGamepad:controller]) {
+            count++;
+        }
     }
     
+    return count;
+}
+
++(int) getConnectedGamepadMask:(StreamConfiguration*)streamConfig {
+    int mask = 0;
+    
+    if (streamConfig.multiController) {
+        int i = 0;
+        for (GCController* controller in [GCController controllers]) {
+            if ([ControllerSupport isSupportedGamepad:controller]) {
+                mask |= 1 << i++;
+            }
+        }
+    }
+    else {
+        // Some games don't deal with having controller reconnected
+        // properly so always report controller 1 if not in MC mode
+        mask = 0x1;
+    }
+    
+#if TARGET_OS_IPHONE
     DataManager* dataMan = [[DataManager alloc] init];
     OnScreenControlsLevel level = (OnScreenControlsLevel)[[dataMan getSettings].onscreenControls integerValue];
     
     // Even if no gamepads are present, we will always count one
     // if OSC is enabled.
     if (level != OnScreenControlsLevelOff) {
-        mask |= 1;
+        mask |= 0x1;
     }
+#endif
     
     return mask;
 }
 
--(id) init
+-(id) initWithConfig:(StreamConfiguration*)streamConfig
 {
     self = [super init];
     
     _controllerStreamLock = [[NSLock alloc] init];
     _controllers = [[NSMutableDictionary alloc] init];
     _controllerNumbers = 0;
+    _multiController = streamConfig.multiController;
+
     _player0osc = [[Controller alloc] init];
     _player0osc.playerIndex = 0;
-    
+
+#if TARGET_OS_IPHONE
     DataManager* dataMan = [[DataManager alloc] init];
     _oscEnabled = (OnScreenControlsLevel)[[dataMan getSettings].onscreenControls integerValue] != OnScreenControlsLevelOff;
+#else
+    _oscEnabled = false;
+    initGamepad(self);
+    Gamepad_detectDevices();
+#endif
     
-    Log(LOG_I, @"Number of controllers connected: %ld", (long)[[GCController controllers] count]);
+    Log(LOG_I, @"Number of supported controllers connected: %d", [ControllerSupport getGamepadCount]);
+    Log(LOG_I, @"Multi-controller: %d", _multiController);
+    
     for (GCController* controller in [GCController controllers]) {
-        if (![controller.vendorName isEqualToString:@"Remote"]) {
+        if ([ControllerSupport isSupportedGamepad:controller]) {
             [self assignController:controller];
             [self registerControllerCallbacks:controller];
             [self updateAutoOnScreenControlMode];
@@ -352,6 +437,12 @@
         Log(LOG_I, @"Controller connected!");
         
         GCController* controller = note.object;
+        
+        if (![ControllerSupport isSupportedGamepad:controller]) {
+            // Ignore micro gamepads and motion controllers
+            return;
+        }
+        
         [self assignController:controller];
         
         // Register callbacks on the new controller
@@ -364,18 +455,23 @@
         Log(LOG_I, @"Controller disconnected!");
         
         GCController* controller = note.object;
+        
+        if (![ControllerSupport isSupportedGamepad:controller]) {
+            // Ignore micro gamepads and motion controllers
+            return;
+        }
+        
         [self unregisterControllerCallbacks:controller];
-        _controllerNumbers &= ~(1 << controller.playerIndex);
+        self->_controllerNumbers &= ~(1 << controller.playerIndex);
         Log(LOG_I, @"Unassigning controller index: %ld", (long)controller.playerIndex);
         
         // Inform the server of the updated active gamepads before removing this controller
-        [self updateFinished:[_controllers objectForKey:[NSNumber numberWithInteger:controller.playerIndex]]];
-        [_controllers removeObjectForKey:[NSNumber numberWithInteger:controller.playerIndex]];
-        
+        [self updateFinished:[self->_controllers objectForKey:[NSNumber numberWithInteger:controller.playerIndex]]];
+        [self->_controllers removeObjectForKey:[NSNumber numberWithInteger:controller.playerIndex]];
+
         // Re-evaluate the on-screen control mode
         [self updateAutoOnScreenControlMode];
     }];
-    
     return self;
 }
 
@@ -386,7 +482,9 @@
     [_controllers removeAllObjects];
     _controllerNumbers = 0;
     for (GCController* controller in [GCController controllers]) {
-        [self unregisterControllerCallbacks:controller];
+        if ([ControllerSupport isSupportedGamepad:controller]) {
+            [self unregisterControllerCallbacks:controller];
+        }
     }
 }
 

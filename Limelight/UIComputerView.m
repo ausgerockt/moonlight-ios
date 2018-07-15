@@ -18,24 +18,24 @@
     CGSize _labelSize;
 }
 static const float REFRESH_CYCLE = 2.0f;
-#if TARGET_OS_IOS
-static const int LABEL_DY = 20;
-#elif TARGET_OS_TV
+#if TARGET_OS_TV
 static const int LABEL_DY = 40;
+#else
+static const int LABEL_DY = 20;
 #endif
 
 - (id) init {
     self = [super init];
     _hostButton = [UIButton buttonWithType:UIButtonTypeCustom];
-#if TARGET_OS_IOS
+#if TARGET_OS_TV
+    [_hostButton setBackgroundImage:[UIImage imageNamed:@"ComputerTV"] forState:UIControlStateNormal];
+    _hostButton.adjustsImageWhenHighlighted = true;
+#else
     [_hostButton setContentEdgeInsets:UIEdgeInsetsMake(0, 4, 0, 4)];
     [_hostButton setBackgroundImage:[UIImage imageNamed:@"Computer"] forState:UIControlStateNormal];
     [_hostLabel setFont:[UIFont fontWithName:@"Roboto-Regular" size:[UIFont systemFontSize]]];
     [_hostStatus setFont:[UIFont fontWithName:@"Roboto-Regular" size:[UIFont systemFontSize]]];
     [_hostPairState setFont:[UIFont fontWithName:@"Roboto-Regular" size:[UIFont systemFontSize]]];
-#elif TARGET_OS_TV
-    [_hostButton setBackgroundImage:[UIImage imageNamed:@"ComputerTV"] forState:UIControlStateNormal];
-    _hostButton.adjustsImageWhenHighlighted = true;
 #endif
     [_hostButton sizeToFit];
     
@@ -46,7 +46,12 @@ static const int LABEL_DY = 40;
     _hostLabel = [[UILabel alloc] init];
     _hostStatus = [[UILabel alloc] init];
     _hostPairState = [[UILabel alloc] init];
-
+#if TARGET_OS_TV
+#else
+    [_hostLabel setFont:[UIFont fontWithName:@"Roboto-Regular" size:[UIFont systemFontSize]]];
+    [_hostStatus setFont:[UIFont fontWithName:@"Roboto-Regular" size:[UIFont systemFontSize]]];
+    [_hostPairState setFont:[UIFont fontWithName:@"Roboto-Regular" size:[UIFont systemFontSize]]];
+#endif
     return self;
 }
 
@@ -54,14 +59,14 @@ static const int LABEL_DY = 40;
     self = [self init];
     _callback = callback;
     
-#if TARGET_OS_IOS
-    [_hostButton setBackgroundImage:[UIImage imageNamed:@"Computer"] forState:UIControlStateNormal];
-    [_hostButton addTarget:self action:@selector(addClicked) forControlEvents:UIControlEventTouchUpInside];
-    [_hostButton setContentEdgeInsets:UIEdgeInsetsMake(0, 4, 0, 4)];
-#elif TARGET_OS_TV
+#if TARGET_OS_TV
     [_hostButton setBackgroundImage:[UIImage imageNamed:@"ComputerTV"] forState:UIControlStateNormal];
-    [_hostButton addTarget:self action:@selector(addClicked) forControlEvents:UIControlEventPrimaryActionTriggered];
     _hostButton.adjustsImageWhenHighlighted = true;
+    [_hostButton addTarget:self action:@selector(addClicked) forControlEvents:UIControlEventPrimaryActionTriggered];
+#else
+    [_hostButton setBackgroundImage:[UIImage imageNamed:@"Computer"] forState:UIControlStateNormal];
+    [_hostButton setContentEdgeInsets:UIEdgeInsetsMake(0, 4, 0, 4)];
+    [_hostButton addTarget:self action:@selector(addClicked) forControlEvents:UIControlEventTouchUpInside];
 #endif
 
     [_hostButton sizeToFit];

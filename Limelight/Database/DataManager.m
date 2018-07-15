@@ -9,7 +9,6 @@
 #import "DataManager.h"
 #import "TemporaryApp.h"
 #import "TemporarySettings.h"
-#import "Settings.h"
 #import "OnScreenControls.h"
 
 @implementation DataManager {
@@ -23,16 +22,17 @@
     // HACK: Avoid calling [UIApplication delegate] off the UI thread to keep
     // Main Thread Checker happy.
     if ([NSThread isMainThread]) {
-        _appDelegate = (AppDelegate *)[[UIApplication sharedApplication] delegate];
+        _appDelegate = (AppDelegate *)[[OSApplication sharedApplication] delegate];
+        
     }
     else {
         dispatch_sync(dispatch_get_main_queue(), ^{
-            _appDelegate = (AppDelegate *)[[UIApplication sharedApplication] delegate];
+            self->_appDelegate = (AppDelegate *)[[OSApplication sharedApplication] delegate];
         });
     }
     
     _managedObjectContext = [[NSManagedObjectContext alloc] initWithConcurrencyType:NSMainQueueConcurrencyType];
-    [_managedObjectContext setPersistentStoreCoordinator:_appDelegate.persistentStoreCoordinator];
+    [_managedObjectContext setParentContext:[_appDelegate managedObjectContext]];
     
     return self;
 }
@@ -54,16 +54,31 @@
     return uid;
 }
 
-- (void) saveSettingsWithBitrate:(NSInteger)bitrate framerate:(NSInteger)framerate height:(NSInteger)height width:(NSInteger)width onscreenControls:(NSInteger)onscreenControls {
+- (void) saveSettingsWithBitrate:(NSInteger)bitrate
+                       framerate:(NSInteger)framerate
+                          height:(NSInteger)height
+                           width:(NSInteger)width
+                onscreenControls:(NSInteger)onscreenControls
+                          remote:(BOOL)streamingRemotely
+                   optimizeGames:(BOOL)optimizeGames
+                 multiController:(BOOL)multiController
+                       audioOnPC:(BOOL)audioOnPC
+                         useHevc:(BOOL)useHevc
+                       enableHdr:(BOOL)enableHdr {
     
     [_managedObjectContext performBlockAndWait:^{
         Settings* settingsToSave = [self retrieveSettings];
         settingsToSave.framerate = [NSNumber numberWithInteger:framerate];
-        // Bitrate is persisted in kbps
         settingsToSave.bitrate = [NSNumber numberWithInteger:bitrate];
         settingsToSave.height = [NSNumber numberWithInteger:height];
         settingsToSave.width = [NSNumber numberWithInteger:width];
         settingsToSave.onscreenControls = [NSNumber numberWithInteger:onscreenControls];
+        settingsToSave.streamingRemotely = streamingRemotely;
+        settingsToSave.optimizeGames = optimizeGames;
+        settingsToSave.multiController = multiController;
+        settingsToSave.playAudioOnPC = audioOnPC;
+        settingsToSave.useHevc = useHevc;
+        settingsToSave.enableHdr = enableHdr;
         
         [self saveData];
     }];
@@ -74,8 +89,8 @@
         // Add a new persistent managed object if one doesn't exist
         Host* parent = [self getHostForTemporaryHost:host withHostRecords:[self fetchRecords:@"Host"]];
         if (parent == nil) {
-            NSEntityDescription* entity = [NSEntityDescription entityForName:@"Host" inManagedObjectContext:_managedObjectContext];
-            parent = [[Host alloc] initWithEntity:entity insertIntoManagedObjectContext:_managedObjectContext];
+            NSEntityDescription* entity = [NSEntityDescription entityForName:@"Host" inManagedObjectContext:self->_managedObjectContext];
+            parent = [[Host alloc] initWithEntity:entity insertIntoManagedObjectContext:self->_managedObjectContext];
         }
         
         // Push changes from the temp host to the persistent one
@@ -99,8 +114,8 @@
             // Add a new persistent managed object if one doesn't exist
             App* parentApp = [self getAppForTemporaryApp:app withAppRecords:appRecords];
             if (parentApp == nil) {
-                NSEntityDescription* entity = [NSEntityDescription entityForName:@"App" inManagedObjectContext:_managedObjectContext];
-                parentApp = [[App alloc] initWithEntity:entity insertIntoManagedObjectContext:_managedObjectContext];
+                NSEntityDescription* entity = [NSEntityDescription entityForName:@"App" inManagedObjectContext:self->_managedObjectContext];
+                parentApp = [[App alloc] initWithEntity:entity insertIntoManagedObjectContext:self->_managedObjectContext];
             }
             
             [app propagateChangesToParent:parentApp withHost:parent];
@@ -139,18 +154,7 @@
 }
 
 - (Settings*) retrieveSettings {
-#if TARGET_OS_IOS
-    NSArray* fetchedRecords = [self fetchRecords:@"Settings"];
-    if (fetchedRecords.count == 0) {
-        // create a new settings object with the default values
-        NSEntityDescription* entity = [NSEntityDescription entityForName:@"Settings" inManagedObjectContext:_managedObjectContext];
-        Settings* settings = [[Settings alloc] initWithEntity:entity insertIntoManagedObjectContext:_managedObjectContext];
-        return settings;
-    } else {
-        // we should only ever have 1 settings object stored
-        return [fetchedRecords objectAtIndex:0];
-    }
-#elif TARGET_OS_TV
+#if TARGET_OS_TV
     NSEntityDescription* entity = [NSEntityDescription entityForName:@"Settings" inManagedObjectContext:_managedObjectContext];
     Settings* settings = [[Settings alloc] initWithEntity:entity insertIntoManagedObjectContext:_managedObjectContext];
     
@@ -187,6 +191,17 @@
     settings.onscreenControls = [NSNumber numberWithInt:OnScreenControlsLevelOff];
     
     return settings;
+#else
+    NSArray* fetchedRecords = [self fetchRecords:@"Settings"];
+    if (fetchedRecords.count == 0) {
+        // create a new settings object with the default values
+        NSEntityDescription* entity = [NSEntityDescription entityForName:@"Settings" inManagedObjectContext:_managedObjectContext];
+        Settings* settings = [[Settings alloc] initWithEntity:entity insertIntoManagedObjectContext:_managedObjectContext];
+        return settings;
+    } else {
+        // we should only ever have 1 settings object stored
+        return [fetchedRecords objectAtIndex:0];
+    }
 #endif
 }
 
@@ -194,7 +209,7 @@
     [_managedObjectContext performBlockAndWait:^{
         App* managedApp = [self getAppForTemporaryApp:app withAppRecords:[self fetchRecords:@"App"]];
         if (managedApp != nil) {
-            [_managedObjectContext deleteObject:managedApp];
+            [self->_managedObjectContext deleteObject:managedApp];
             [self saveData];
         }
     }];
@@ -204,7 +219,7 @@
     [_managedObjectContext performBlockAndWait:^{
         Host* managedHost = [self getHostForTemporaryHost:host withHostRecords:[self fetchRecords:@"Host"]];
         if (managedHost != nil) {
-            [_managedObjectContext deleteObject:managedHost];
+            [self->_managedObjectContext deleteObject:managedHost];
             [self saveData];
         }
     }];
@@ -212,7 +227,7 @@
 
 - (void) saveData {
     NSError* error;
-    if (![_managedObjectContext save:&error]) {
+    if ([_managedObjectContext hasChanges] && ![_managedObjectContext save:&error]) {
         Log(LOG_E, @"Unable to save hosts to database: %@", error);
     }
 
@@ -248,7 +263,7 @@
 - (App*) getAppForTemporaryApp:(TemporaryApp*)tempApp withAppRecords:(NSArray*)apps {
     for (App* app in apps) {
         if ([app.id isEqualToString:tempApp.id] &&
-            [app.host.uuid isEqualToString:app.host.uuid]) {
+            [app.host.uuid isEqualToString:tempApp.host.uuid]) {
             return app;
         }
     }

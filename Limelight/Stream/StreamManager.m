@@ -10,7 +10,7 @@
 #import "CryptoManager.h"
 #import "HttpManager.h"
 #import "Utils.h"
-#import "OnScreenControls.h"
+
 #import "StreamView.h"
 #import "ServerInfoResponse.h"
 #import "HttpResponse.h"
@@ -19,12 +19,13 @@
 
 @implementation StreamManager {
     StreamConfiguration* _config;
-    UIView* _renderView;
+
+    OSView* _renderView;
     id<ConnectionCallbacks> _callbacks;
     Connection* _connection;
 }
 
-- (id) initWithConfig:(StreamConfiguration*)config renderView:(UIView*)view connectionCallbacks:(id<ConnectionCallbacks>)callbacks {
+- (id) initWithConfig:(StreamConfiguration*)config renderView:(OSView*)view connectionCallbacks:(id<ConnectionCallbacks>)callbacks {
     self = [super init];
     _config = config;
     _renderView = view;
@@ -34,7 +35,6 @@
     return self;
 }
 
-
 - (void)main {
     [CryptoManager generateKeyPairUsingSSl];
     NSString* uniqueId = [IdManager getUniqueId];
@@ -42,7 +42,7 @@
     
     HttpManager* hMan = [[HttpManager alloc] initWithHost:_config.host
                                                  uniqueId:uniqueId
-                                               deviceName:@"roth"
+                                               deviceName:deviceName
                                                      cert:cert];
     
     ServerInfoResponse* serverInfoResp = [[ServerInfoResponse alloc] init];
@@ -75,22 +75,26 @@
             return;
         }
     }
-    
+
+#if TARGET_OS_IPHONE
     // Set mouse delta factors from the screen resolution and stream size
     CGFloat screenScale = [[UIScreen mainScreen] scale];
     CGRect screenBounds = [[UIScreen mainScreen] bounds];
     CGSize screenSize = CGSizeMake(screenBounds.size.width * screenScale, screenBounds.size.height * screenScale);
     [((StreamView*)_renderView) setMouseDeltaFactors:_config.width / screenSize.width
                                                    y:_config.height / screenSize.height];
-    
+#endif
     // Populate the config's version fields from serverinfo
     _config.appVersion = appversion;
     _config.gfeVersion = gfeVersion;
     
-    VideoDecoderRenderer* renderer = [[VideoDecoderRenderer alloc]initWithView:_renderView];
-    _connection = [[Connection alloc] initWithConfig:_config renderer:renderer connectionCallbacks:_callbacks];
-    NSOperationQueue* opQueue = [[NSOperationQueue alloc] init];
-    [opQueue addOperation:_connection];
+    // Initializing the renderer must be done on the main thread
+    dispatch_async(dispatch_get_main_queue(), ^{
+        VideoDecoderRenderer* renderer = [[VideoDecoderRenderer alloc] initWithView:self->_renderView];
+        self->_connection = [[Connection alloc] initWithConfig:self->_config renderer:renderer connectionCallbacks:self->_callbacks];
+        NSOperationQueue* opQueue = [[NSOperationQueue alloc] init];
+        [opQueue addOperation:self->_connection];
+    });
 }
 
 - (void) stopStream
@@ -100,14 +104,7 @@
 
 - (BOOL) launchApp:(HttpManager*)hMan {
     HttpResponse* launchResp = [[HttpResponse alloc] init];
-    [hMan executeRequestSynchronously:[HttpRequest requestForResponse:launchResp withUrlRequest:
-                          [hMan newLaunchRequest:_config.appID
-                                           width:_config.width
-                                          height:_config.height
-                                     refreshRate:_config.frameRate
-                                           rikey:[Utils bytesToHex:_config.riKey]
-                                         rikeyid:_config.riKeyId
-                                     gamepadMask:_config.gamepadMask]]];
+    [hMan executeRequestSynchronously:[HttpRequest requestForResponse:launchResp withUrlRequest:[hMan newLaunchRequest:_config]]];
     NSString *gameSession = [launchResp getStringTag:@"gamesession"];
     if (launchResp == NULL || ![launchResp isStatusOk]) {
         [_callbacks launchFailed:@"Failed to launch app"];
@@ -124,9 +121,7 @@
 
 - (BOOL) resumeApp:(HttpManager*)hMan {
     HttpResponse* resumeResp = [[HttpResponse alloc] init];
-    [hMan executeRequestSynchronously:[HttpRequest requestForResponse:resumeResp withUrlRequest:
-                          [hMan newResumeRequestWithRiKey:[Utils bytesToHex:_config.riKey]
-                                                  riKeyId:_config.riKeyId]]];
+    [hMan executeRequestSynchronously:[HttpRequest requestForResponse:resumeResp withUrlRequest:[hMan newResumeRequest:_config]]];
     NSString* resume = [resumeResp getStringTag:@"resume"];
     if (resumeResp == NULL || ![resumeResp isStatusOk]) {
         [_callbacks launchFailed:@"Failed to resume app"];

@@ -70,6 +70,10 @@
 }
 
 - (void) startDiscovery {
+    if (shouldDiscover) {
+        return;
+    }
+    
     Log(LOG_I, @"Starting discovery");
     shouldDiscover = YES;
     [_mdnsMan searchForHosts];
@@ -79,6 +83,10 @@
 }
 
 - (void) stopDiscovery {
+    if (!shouldDiscover) {
+        return;
+    }
+    
     Log(LOG_I, @"Stopping discovery");
     shouldDiscover = NO;
     [_mdnsMan stopSearching];
@@ -87,10 +95,18 @@
 
 - (void) stopDiscoveryBlocking {
     Log(LOG_I, @"Stopping discovery and waiting for workers to stop");
-    shouldDiscover = NO;
-    [_mdnsMan stopSearching];
-    [_opQueue cancelAllOperations];
+    
+    if (shouldDiscover) {
+        shouldDiscover = NO;
+        [_mdnsMan stopSearching];
+        [_opQueue cancelAllOperations];
+    }
+    
+    // Ensure we always wait, just in case discovery
+    // was stopped already but in an async manner that
+    // left operations in progress.
     [_opQueue waitUntilAllOperationsAreFinished];
+    
     Log(LOG_I, @"All discovery workers stopped");
 }
 
@@ -143,27 +159,24 @@
 }
 
 // Override from MDNSCallback
-- (void)updateHosts:(NSArray *)hosts {
+- (void)updateHost:(TemporaryHost*)host {
     dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
         // Discover the hosts before adding to eliminate duplicates
-        for (TemporaryHost* host in hosts) {
-            Log(LOG_I, @"Found host through MDNS: %@:", host.name);
-            // Since this is on a background thread, we do not need to use the opQueue
-            DiscoveryWorker* worker = (DiscoveryWorker*)[self createWorkerForHost:host];
-            [worker discoverHost];
-            if ([self addHostToDiscovery:host]) {
-                Log(LOG_I, @"Adding host to discovery: %@", host.name);
-                [_callback updateAllHosts:_hostQueue];
-            } else {
-                Log(LOG_I, @"Not adding host to discovery: %@", host.name);
-            }
+        Log(LOG_D, @"Found host through MDNS: %@:", host.name);
+        // Since this is on a background thread, we do not need to use the opQueue
+        DiscoveryWorker* worker = (DiscoveryWorker*)[self createWorkerForHost:host];
+        [worker discoverHost];
+        if ([self addHostToDiscovery:host]) {
+            Log(LOG_I, @"Found new host through MDNS: %@:", host.name);
+            [self->_callback updateAllHosts:self->_hostQueue];
+        } else {
+            Log(LOG_D, @"Found existing host through MDNS: %@", host.name);
         }
     });
 }
 
 - (TemporaryHost*) getHostInDiscovery:(NSString*)uuidString {
-    for (int i = 0; i < _hostQueue.count; i++) {
-        TemporaryHost* discoveredHost = [_hostQueue objectAtIndex:i];
+    for (TemporaryHost* discoveredHost in _hostQueue) {
         if (discoveredHost.uuid.length > 0 && [discoveredHost.uuid isEqualToString:uuidString]) {
             return discoveredHost;
         }

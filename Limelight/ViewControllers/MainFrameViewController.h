@@ -15,10 +15,10 @@
 #import "AppAssetManager.h"
 #import "SWRevealViewController.h"
 
-#if TARGET_OS_IOS
-@interface MainFrameViewController : UICollectionViewController <DiscoveryCallback, PairCallback, HostCallback, AppCallback, AppAssetCallback, NSURLConnectionDelegate, SWRevealViewControllerDelegate>
-#elif TARGET_OS_TV
+#if TARGET_OS_TV
 @interface MainFrameViewController : UICollectionViewController <DiscoveryCallback, PairCallback, HostCallback, AppCallback, AppAssetCallback, NSURLConnectionDelegate, UICollectionViewDataSource, SWRevealViewControllerDelegate>
+#else
+@interface MainFrameViewController : UICollectionViewController <DiscoveryCallback, PairCallback, HostCallback, AppCallback, AppAssetCallback, NSURLConnectionDelegate, SWRevealViewControllerDelegate>
 #endif
 
 -(void)presentAlert:(UIAlertController *_Nonnull)alert;

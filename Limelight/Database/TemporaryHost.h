@@ -6,9 +6,8 @@
 //  Copyright © 2015 Moonlight Stream. All rights reserved.
 //
 
-#import <Foundation/Foundation.h>
 #import "Utils.h"
-#import "Host.h"
+#import "Host+CoreDataClass.h"
 
 @interface TemporaryHost : NSObject
 
@@ -25,6 +24,7 @@ NS_ASSUME_NONNULL_BEGIN
 @property (nonatomic, retain) NSString *mac;
 @property (nonatomic, retain) NSString *name;
 @property (nonatomic, retain) NSString *uuid;
+@property (nonatomic)         int serverCodecModeSupport;
 @property (nonatomic, retain) NSMutableSet *appList;
 
 - (id) initFromHost:(Host*)host;

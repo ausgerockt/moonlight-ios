@@ -21,6 +21,12 @@
     self.width = settings.width;
     self.onscreenControls = settings.onscreenControls;
     self.uniqueId = settings.uniqueId;
+    self.streamingRemotely = settings.streamingRemotely;
+    self.useHevc = settings.useHevc;
+    self.multiController = settings.multiController;
+    self.playAudioOnPC = settings.playAudioOnPC;
+    self.enableHdr = settings.enableHdr;
+    self.optimizeGames = settings.optimizeGames;
     
     return self;
 }

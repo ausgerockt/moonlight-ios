@@ -16,41 +16,21 @@
 
 static NSOperationQueue* mainQueue;
 
+#if TARGET_OS_IPHONE || TARGET_OS_TV
 - (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions
 {
-#if TARGET_OS_IOS
-    CGFloat systemFontSize = [UIFont systemFontSize];
-#elif TARGET_OS_TV
+#if TARGET_OS_TV
     CGFloat systemFontSize = 12.0f;
+#else
+    CGFloat systemFontSize = [UIFont systemFontSize];
 #endif
 
     [[UILabel appearance] setFont:[UIFont fontWithName:@"Roboto-Regular" size:systemFontSize]];
     [[UIButton appearance].titleLabel setFont:[UIFont fontWithName:@"Roboto-Regular" size:systemFontSize]];
-
-    // Generate selected segment background image
-    CGSize borderImageSize = CGSizeMake(1.f, 100.f);
-    
-    UIGraphicsBeginImageContext(borderImageSize);
-    CGContextRef context = UIGraphicsGetCurrentContext();
-    
-    CGContextSetStrokeColorWithColor(context, [UIColor whiteColor].CGColor);
-    CGContextFillRect(context, CGRectMake(0.f, borderImageSize.height * 0.8, borderImageSize.width, borderImageSize.height));
-    
-    UIImage *selectedSegmentBG = UIGraphicsGetImageFromCurrentImageContext();
-    UIGraphicsEndImageContext();
-    
-    // Clear default border and background color
-    [[UISegmentedControl appearance] setBackgroundImage:[[UIImage alloc] init] forState:UIControlStateNormal barMetrics:UIBarMetricsDefault];
-    [[UISegmentedControl appearance] setDividerImage:[[UIImage alloc] init] forLeftSegmentState:UIControlStateNormal rightSegmentState:UIControlStateNormal barMetrics:UIBarMetricsDefault];
-    
-    // Set selected segment background image
-    [[UISegmentedControl appearance] setBackgroundImage:[selectedSegmentBG imageWithRenderingMode:UIImageRenderingModeAlwaysTemplate] forState:UIControlStateSelected barMetrics:UIBarMetricsDefault];
-  
-  
-    // Change font on UISegmentedControl
     [[UISegmentedControl appearance] setTitleTextAttributes:[NSDictionary dictionaryWithObjectsAndKeys:
                                                              [UIColor whiteColor], NSForegroundColorAttributeName,
                                                              [UIFont fontWithName:@"Roboto-Regular" size:systemFontSize], NSFontAttributeName, nil] forState:UIControlStateNormal];
+    
     return YES;
 }
 
@@ -62,7 +42,7 @@ static NSOperationQueue* mainQueue;
 
 - (void)applicationDidEnterBackground:(UIApplication *)application
 {
-    // Use this method to release shared resources, save user data, invalidate timers, and store enough application state information to restore your application to its current state in case it is terminated later. 
+    // Use this method to release shared resources, save user data, invalidate timers, and store enough application state information to restore your application to its current state in case it is terminated later.
     // If your application supports background execution, this method is called instead of applicationWillTerminate: when the user quits.
 }
 
@@ -81,15 +61,28 @@ static NSOperationQueue* mainQueue;
     // Saves changes in the application's managed object context before the application terminates.
     [self saveContext];
 }
+#else
+- (void)applicationDidFinishLaunching:(NSNotification *)aNotification {
+    // Insert code here to initialize your application
+}
+
+- (void)applicationWillTerminate:(NSNotification *)aNotification {
+    // Insert code here to tear down your application
+    [self saveContext];
+}
+
+#endif
 
 - (void)saveContext
 {
-    NSError *error = nil;
-    NSManagedObjectContext *managedObjectContext = self.managedObjectContext;
+    NSManagedObjectContext *managedObjectContext = [self managedObjectContext];
     if (managedObjectContext != nil) {
-        if ([managedObjectContext hasChanges] && ![managedObjectContext save:&error]) {
-            Log(LOG_E, @"Critical database error: %@, %@", error, [error userInfo]);
-        } 
+        [managedObjectContext performBlock:^{
+            NSError *error = nil;
+            if ([managedObjectContext hasChanges] && ![managedObjectContext save:&error]) {
+                Log(LOG_E, @"Critical database error: %@, %@", error, [error userInfo]);
+            }
+        }];
     }
 }
 
@@ -156,15 +149,19 @@ static NSOperationQueue* mainQueue;
 // Returns the URL to the application's Documents directory.
 - (NSURL *)applicationDocumentsDirectory
 {
-#if TARGET_OS_IOS
-    return [[[NSFileManager defaultManager] URLsForDirectory:NSDocumentDirectory inDomains:NSUserDomainMask] lastObject];
-#elif TARGET_OS_TV
+#if TARGET_OS_TV
     return [[[NSFileManager defaultManager] URLsForDirectory:NSCachesDirectory inDomains:NSUserDomainMask] lastObject];
+#else
+    return [[[NSFileManager defaultManager] URLsForDirectory:NSDocumentDirectory inDomains:NSUserDomainMask] lastObject];
 #endif
 }
 
 - (NSURL*) getStoreURL {
+#if TARGET_OS_IPHONE || TARGET_OS_TV
     return [[self applicationDocumentsDirectory] URLByAppendingPathComponent:@"Limelight_iOS.sqlite"];
+#else
+    return [[self applicationDocumentsDirectory] URLByAppendingPathComponent:@"moonlight_mac.sqlite"];
+#endif
 }
 
 @end
